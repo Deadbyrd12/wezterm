@@ -713,6 +713,16 @@ impl TerminalState {
         Ok(())
     }
 
+    fn get_clipboard_contents<'a>(
+        &'a mut self,
+        selection: ClipboardSelection,
+    ) -> anyhow::Result<()> {
+        if let Some(clip) = self.clipboard.as_ref() {
+            clip.get_contents(selection)?;
+        }
+        Ok(())
+    }
+
     pub fn erase_scrollback_and_viewport(&mut self) {
         // Since we may be called outside of perform_actions,
         // we need to ensure that we increment the seqno in

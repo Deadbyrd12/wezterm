@@ -1285,6 +1285,9 @@ impl TermWindow {
                 MuxNotification::AssignClipboard { .. } => {
                     // Handled by frontend
                 }
+                MuxNotification::QueryClipboard { .. } => {
+                    // Handled by frontend
+                }
                 MuxNotification::SaveToDownloads { .. } => {
                     // Handled by frontend
                 }
@@ -1503,6 +1506,7 @@ impl TermWindow {
                 ..
             }
             | MuxNotification::AssignClipboard { .. }
+            | MuxNotification::QueryClipboard { .. }
             | MuxNotification::SaveToDownloads { .. }
             | MuxNotification::WindowCreated(_)
             | MuxNotification::ActiveWorkspaceChanged(_)

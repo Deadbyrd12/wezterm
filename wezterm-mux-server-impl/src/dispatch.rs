@@ -141,6 +141,12 @@ where
                 .await?;
                 stream.flush().await.context("flushing PDU to client")?;
             }
+            Ok(Item::Notif(MuxNotification::QueryClipboard {
+                pane_id,
+                selection,
+            })) => {
+                log::error!("TODO Implement QueryClipboard in Mux-Server"); // TODO
+            }
             Ok(Item::Notif(MuxNotification::TabAddedToWindow { tab_id, window_id })) => {
                 Pdu::TabAddedToWindow(codec::TabAddedToWindow { tab_id, window_id })
                     .encode_async(&mut stream, 0)

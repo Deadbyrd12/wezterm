@@ -14,6 +14,7 @@ use std::cell::RefCell;
 use std::collections::{BTreeMap, HashSet};
 use std::rc::Rc;
 use std::sync::Arc;
+use termwiz::escape::osc::{Selection, OperatingSystemCommand};
 use wezterm_term::{Alert, ClipboardSelection};
 use wezterm_toast_notification::*;
 
@@ -194,6 +195,49 @@ impl GuiFrontEnd {
                                 },
                                 clipboard.unwrap_or_else(String::new),
                             );
+                        } else {
+                            log::error!("Cannot assign clipboard as there are no windows");
+                        };
+                    })
+                    .detach();
+                }
+                MuxNotification::QueryClipboard {
+                    pane_id,
+                    selection,
+                } => {
+                    promise::spawn::spawn_into_main_thread(async move {
+                        let option = if let Some(window) = crate::frontend::front_end().known_windows.borrow().keys().next() {
+                            Some(window.clone())
+                        } else {
+                            log::error!("could not find window");
+                            None
+                        };
+                        log::trace!(
+                            "set clipboard in pane {} {:?}",
+                            pane_id,
+                            selection,
+                        );
+                        if let Some(window) = option {
+                            let future = window.get_clipboard(
+                                match selection {
+                                    ClipboardSelection::Clipboard => Clipboard::Clipboard,
+                                    ClipboardSelection::PrimarySelection => {
+                                        Clipboard::PrimarySelection
+                                    }
+                                },
+                            );
+                            if let Ok(clip) = future.await {
+                                let mux = Mux::get();
+                                if let Some(pane) = mux.get_pane(pane_id) {
+                                    let osc = OperatingSystemCommand::SetSelection(
+                                        match selection {
+                                            ClipboardSelection::Clipboard => Selection::CLIPBOARD,
+                                            ClipboardSelection::PrimarySelection => Selection::PRIMARY
+                                        }, clip);
+                                    write!(pane.writer(), "{}", osc);
+                                    pane.writer().flush().ok();
+                                }
+                            }
                         } else {
                             log::error!("Cannot assign clipboard as there are no windows");
                         };

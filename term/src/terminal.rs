@@ -16,6 +16,11 @@ pub trait Clipboard: Send + Sync {
         selection: ClipboardSelection,
         data: Option<String>,
     ) -> anyhow::Result<()>;
+
+    fn get_contents(
+        &self,
+        selection: ClipboardSelection,
+    ) -> anyhow::Result<()>;
 }
 
 impl Clipboard for Box<dyn Clipboard> {
@@ -25,6 +30,13 @@ impl Clipboard for Box<dyn Clipboard> {
         data: Option<String>,
     ) -> anyhow::Result<()> {
         self.as_ref().set_contents(selection, data)
+    }
+
+    fn get_contents(
+        &self,
+        selection: ClipboardSelection,
+    ) -> anyhow::Result<()> {
+        self.as_ref().get_contents(selection)
     }
 }
 
